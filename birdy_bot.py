@@ -13,6 +13,7 @@ bot = telebot.TeleBot(config.TOKEN)
 subcall = subprocess.call
 
 THRESHOLD = 1000
+firstFrame = None
 
 notify_chat_ids = []
 photo_chat_ids = []
@@ -28,8 +29,10 @@ cvColor = cv2.cvtColor
 cvResize = cv2.resize
 
 def birb_online():
+	global firstFrame
 	cap = vidCap(-1)
-	firstFrame = None
+	gray = None
+	#firstFrame = None
 	while True:
 		ret, frame = cap.read()
 
@@ -53,6 +56,7 @@ def birb_online():
 			else:
 				print('motion detected')
 				cap.release()
+				firstFrame = gray
 				return True
 
 		break
@@ -60,6 +64,7 @@ def birb_online():
 	#release camera
 	print('no motion')
 	cap.release()
+	firstFrame = gray
 	return False
 
 def snap_photo():
@@ -92,11 +97,11 @@ def notify(birb_event, watcher):
 		for id in notify_chat_ids:
 			print('looking through notify chat ids')
 			bot.send_chat_action(id, 'typing')
-			bot.send_message(id, msg)
+			bot.send_message(id, msg, parse_mode='html')
 			bot.send_sticker(id, sticker)
 		while birb_event.is_set():
 			if not photo_chat_ids:
-				break
+				continue
 			snap_photo()
 			photo = open('photo.jpg', 'rb')
 			for id in photo_chat_ids:
@@ -106,7 +111,7 @@ def notify(birb_event, watcher):
 		sticker = open('static/cry.png', 'rb')
 		for id in notify_chat_ids:
 			bot.send_chat_action(id, 'typing')
-			bot.send_message(id, msg)
+			bot.send_message(id, msg, parse_mode='html')
 			bot.send_sticker(id, sticker)
 
 		sleep(3)
