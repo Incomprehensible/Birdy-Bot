@@ -12,7 +12,7 @@ bot = telebot.TeleBot(config.TOKEN)
 
 subcall = subprocess.call
 
-THRESHOLD = 30
+THRESHOLD = 1000
 
 notify_chat_ids = []
 photo_chat_ids = []
@@ -29,24 +29,36 @@ cvResize = cv2.resize
 
 def birb_online():
 	cap = vidCap(-1)
+	firstFrame = None
 	while True:
 		ret, frame = cap.read()
 
-    	if (frame is None):
-        	print("[ERROR]: No camera connection")
+		if frame is None:
+			print("[ERROR]: No camera connection")
 			break
-    	frame = cvResize(frame,(195,150))
-    	gray = cvColor(frame, cv2.COLOR_BGR2GRAY)
+		frame = cvResize(frame, (500,500))#(195,150))
+		gray = cvColor(frame, cv2.COLOR_BGR2GRAY)
 		gray = cv2.GaussianBlur(gray, (21, 21), 0)
 		if firstFrame is None:
 			firstFrame = gray
+			print('got first frame')
 			continue
 		frameDelta = cv2.absdiff(firstFrame, gray)
-		if frameDelta > THRESHOLD:
-			cap.release()
-			return True
+		thresh = cv2.threshold(frameDelta, 25, 255, cv2.THRESH_BINARY)[1]
+		thresh = cv2.dilate(thresh, None, iterations=2)
+		(cnts,_) = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+		for c in cnts:
+			if cv2.contourArea(c) < THRESHOLD:
+				continue
+			else:
+				print('motion detected')
+				cap.release()
+				return True
+
+		break
 
 	#release camera
+	print('no motion')
 	cap.release()
 	return False
 
@@ -69,18 +81,24 @@ def birbs_monitor(birb_event):
 		sleep(3)
 
 def notify(birb_event, watcher):
+	global notify_chat_ids
+	global photo_chat_ids
 	watcher.start()
 	while True:
 		birb_event.wait()
+		print('birb event is set')
 		msg = '<b>Birbs are present!</b> Enjoy birbs for a limited time!'
 		sticker = open('static/enthusiastic.webp', 'rb')
 		for id in notify_chat_ids:
+			print('looking through notify chat ids')
 			bot.send_chat_action(id, 'typing')
 			bot.send_message(id, msg)
 			bot.send_sticker(id, sticker)
 		while birb_event.is_set():
+			if not photo_chat_ids:
+				break
 			snap_photo()
-			photo = open('/tmp/photo.jpg', 'rb')
+			photo = open('photo.jpg', 'rb')
 			for id in photo_chat_ids:
 				bot.send_photo(id, photo)
 			sleep(5)
@@ -96,6 +114,8 @@ def notify(birb_event, watcher):
 watcher = threading.Thread(target=birbs_monitor, args=(birb_event,))
 watcher.daemon = True
 notifier = threading.Thread(target=notify, args=(birb_event,watcher))
+notifier.daemon = True
+notifier.start()
 
 @bot.message_handler(commands=['start'])
 def greeting(msg):
@@ -128,13 +148,13 @@ def help(msg):
 
 @bot.message_handler(commands=['photo'])
 def take_photo(msg):
-	#take photo
 	snap_photo()
-	photo = open('/tmp/photo.jpg', 'rb')
+	photo = open('photo.jpg', 'rb')
 	bot.send_photo(msg.chat.id, photo)
 
 @bot.message_handler(commands=['notify_me'])
 def notify_on(msg):
+	global notify_chat_ids
 	bot.send_chat_action(msg.chat.id, 'typing')
 	sticker = open('static/yessir.webp', 'rb')
 	bot.send_chat_action(msg.chat.id, 'typing')
@@ -144,6 +164,7 @@ def notify_on(msg):
 
 @bot.message_handler(commands=['notify_off'])
 def notify_off(msg):
+	global notify_chat_ids
 	bot.send_chat_action(msg.chat.id, 'typing')
 	bot.send_chat_action(msg.chat.id, 'typing')
 	bot.send_message(msg.chat.id, "\nNotifications turned off. You broke my birby heart...")
@@ -154,21 +175,22 @@ def notify_off(msg):
 
 @bot.message_handler(commands=['send_birbs'])
 def send_birbs(msg):
+	global photo_chat_ids
 	bot.send_chat_action(msg.chat.id, 'typing')
 	sticker = open('static/ok.png', 'rb')
 	bot.send_chat_action(msg.chat.id, 'typing')
 	bot.send_sticker(msg.chat.id, sticker)
-	notify_chat_ids
 	bot.send_message(msg.chat.id, "\nOk, I'll send you photos!")
 	photo_chat_ids.append(msg.chat.id)
 
 @bot.message_handler(commands=['send_none'])
 def send_no_birbs(msg):
+	global photo_chat_ids
 	bot.send_chat_action(msg.chat.id, 'typing')
 	sticker = open('static/ok.png', 'rb')
 	bot.send_chat_action(msg.chat.id, 'typing')
 	bot.send_sticker(msg.chat.id, sticker)
-]	bot.send_message(msg.chat.id, "\nOk, I'll stop sending you photos.")
+	bot.send_message(msg.chat.id, "\nOk, I'll stop sending you photos.")
 	photo_chat_ids.remove(msg.chat.id)
 
 @bot.message_handler(commands=['stream'])
@@ -182,11 +204,11 @@ def get_status(msg):
 	bot.send_chat_action(msg.chat.id, 'typing')
 	if not birb_event.is_set():
 		sticker = open('static/full.png', 'rb')
-		msg='It seems all birbs are full already or have trouble finding us.'
+		status='It seems all birbs are full already or have trouble finding us.'
 	else:
 		sticker = open('static/fun.png', 'rb')
-		msg='Hooray! Birbs detected.'
-	bot.send_message(msg.chat.id, msg)
+		status='Hooray! Birbs detected.'
+	bot.send_message(msg.chat.id, status)
 	bot.send_sticker(msg.chat.id, sticker)
 
 @bot.message_handler(content_types=['text'])
