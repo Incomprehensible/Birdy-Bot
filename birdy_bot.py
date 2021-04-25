@@ -192,16 +192,18 @@ def send_birbs(msg):
 def send_no_birbs(msg):
 	global photo_chat_ids
 	bot.send_chat_action(msg.chat.id, 'typing')
-	sticker = open('static/ok.png', 'rb')
+	sticker = open('static/disappointed.webp', 'rb')
 	bot.send_chat_action(msg.chat.id, 'typing')
 	bot.send_sticker(msg.chat.id, sticker)
 	bot.send_message(msg.chat.id, "\nOk, I'll stop sending you photos.")
-	photo_chat_ids.remove(msg.chat.id)
+	try:
+		photo_chat_ids.remove(msg.chat.id)
+	except ValueError:
+		pass
 
 @bot.message_handler(commands=['stream'])
 def stream(msg):
-	#stream
-	bot.send_chat_action(msg.chat.id, 'find_location')
+	bot.send_message(msg.chat.id, "Unimplemented.")
 
 @bot.message_handler(commands=['status'])
 def get_status(msg):
@@ -234,9 +236,15 @@ def handle(msg):
 	elif msg.text == 'bye':
 		bot.send_chat_action(msg.chat.id, 'typing')
 		sticker = open('static/bye.png', 'rb')
-		bot.send_sticker(msg.chat.id, sticker)
 		bot.send_chat_action(msg.chat.id, 'typing')
+		bot.send_sticker(msg.chat.id, sticker)
 		bot.send_message(msg.chat.id, 'See ya again at Birbs Temple!')
+	elif msg.text == 'fuck':
+		bot.send_chat_action(msg.chat.id, 'typing')
+		sticker = open('static/rude.png', 'rb')
+		bot.send_chat_action(msg.chat.id, 'typing')
+		bot.send_sticker(msg.chat.id, sticker)
+		bot.send_message(msg.chat.id, "I'm getting bullied... I thought we were birbrends!")
 
 # def birbs_monitor()
 # 	face_cascade = cv2.CascadeClassifier('/home/pi/abbro/daemon_recognition/haarcascade_frontalface_default.xml')
