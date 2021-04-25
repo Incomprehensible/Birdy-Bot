@@ -93,7 +93,11 @@ def notify(birb_event, watcher):
 		birb_event.wait()
 		print('birb event is set')
 		msg = '<b>Birbs are present!</b> Enjoy birbs for a limited time!'
-		sticker = open('static/enthusiastic.webp', 'rb')
+		try:
+			sticker = open('static/enthusiastic.webp', 'rb')
+		except:
+			print('error opening sticker')
+			raise
 		for id in notify_chat_ids:
 			print('looking through notify chat ids')
 			bot.send_chat_action(id, 'typing')
@@ -142,7 +146,7 @@ def help(msg):
 	/notify_me - Turn notifications on, so I could inform you if any birbs are present.
 	/notify_off - Turn notifications off, so to prevent me from irritating you no more.
 	/photo - Ask me to take photo.
-	/send_birbs - Ask me to send you nudes, I mean, pictures of birbs the moment I detect them.
+	/send_birbs - Ask me to send you nudes, oops I mean, pictures of birbs the moment I detect them.
 	/send_none - After this command I'll stop auto-sending you photos of birbs.'''
 	bot.send_message(msg.chat.id, help_msg, parse_mode='html')
 	help_msg ="\nThat's it! Good luck, {0.first_name}!\n".format(msg.from_user)
@@ -246,23 +250,5 @@ def handle(msg):
 		bot.send_sticker(msg.chat.id, sticker)
 		bot.send_message(msg.chat.id, "I'm getting bullied... I thought we were birbrends!")
 
-# def birbs_monitor()
-# 	face_cascade = cv2.CascadeClassifier('/home/pi/abbro/daemon_recognition/haarcascade_frontalface_default.xml')
-# 	vidCap = cv2.VideoCapture
-# 	cvColor = cv2.cvtColor
-# 	cvResize = cv2.resize
-# 	faceCas = face_cascade.detectMultiScale
-# 	ret, frame = cap.read()
-
-#         if (frame is None):
-#             #print("[ERROR]: No camera connection")
-#             break
-#         # Resize with original aspect 4:3
-#         frame = cvResize(frame,(195,150))
-#         # Bounds with faces, if None so no faces
-#         gray = cvColor(frame, cv2.COLOR_BGR2GRAY)
-
-
-#face_cascade = cv2.CascadeClassifier('/home/pi/abbro/daemon_recognition/haarcascade_frontalface_default.xml')
 
 bot.polling(none_stop=True)
