@@ -17,14 +17,14 @@ class Birdy_DB:
         id integer PRIMARY KEY,
         user_id integer);"""
     
-        stream_table = """CREATE TABLE IF NOT EXISTS streaming (
-        id integer PRIMARY KEY,
-        user_id integer);"""
+        # stream_table = """CREATE TABLE IF NOT EXISTS streaming (
+        # id integer PRIMARY KEY,
+        # user_id integer);"""
     
         if self.conn is not None:
             self.create_table(notify_table)
             self.create_table(photos_table)
-            self.create_table(stream_table)
+            # self.create_table(stream_table)
         
     def create_table(self, cmd):
         try:
@@ -54,8 +54,7 @@ class Birdy_DB:
         cur.execute(cmd, (id,))
         self.conn.commit()
 
-    def fetch_notify_data(self):
-        uids = []
+    def fetch_notify_data(self, uids):
         cur = self.conn.cursor()
         cur.execute("SELECT * FROM notifications")
         entries = cur.fetchall()
@@ -63,8 +62,7 @@ class Birdy_DB:
             uids.append(entry[1])
         return uids
     
-    def fetch_photos_data(self):
-        uids = []
+    def fetch_photos_data(self, uids):
         cur = self.conn.cursor()
         cur.execute("SELECT * FROM photos")
         entries = cur.fetchall()
@@ -72,8 +70,7 @@ class Birdy_DB:
             uids.append(entry[1])
         return uids
     
-    def fetch_streams_data(self):
-        uids = []
+    def fetch_streams_data(self, uids):
         cur = self.conn.cursor()
         cur.execute("SELECT * FROM streaming")
         entries = cur.fetchall()
@@ -135,17 +132,3 @@ class Birdy_DB:
         cur.execute(cmd)
         self.conn.commit()
 
-if __name__ == '__main__':
-    db = Birdy_DB()
-    db.add_to_notify(42)
-    db.add_to_notify(55)
-    db.add_to_notify(101)
-    db.add_to_photos(32)
-    db.add_to_photos(7)
-    db.add_to_streams(333)
-    list = db.fetch_notify_data()
-    print(list)
-    list = db.fetch_photos_data()
-    print(list)
-    list = db.fetch_streams_data()
-    print(list)

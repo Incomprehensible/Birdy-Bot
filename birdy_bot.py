@@ -5,6 +5,7 @@ import subprocess
 import cv2
 import threading
 from time import sleep
+from birdy_DB import Birdy_DB
 
 token = token_urlsafe(8)
 
@@ -15,8 +16,16 @@ subcall = subprocess.call
 THRESHOLD = 1000
 firstFrame = None
 
+DB = Birdy_DB()
+
 notify_chat_ids = []
 photo_chat_ids = []
+#stream_chat_ids = []
+
+DB.fetch_notify_data(notify_chat_ids)
+DB.fetch_photos_data(photo_chat_ids)
+#DB.fetch_streams_data(stream_chat_ids)
+
 
 client_path = "/home/pi/birdy_bot/bot_client"
 
@@ -164,16 +173,19 @@ def take_photo(msg):
 @bot.message_handler(commands=['notify_me'])
 def notify_on(msg):
 	global notify_chat_ids
+	global DB
 	bot.send_chat_action(msg.chat.id, 'typing')
 	sticker = open('static/yessir.webp', 'rb')
 	bot.send_chat_action(msg.chat.id, 'typing')
 	bot.send_sticker(msg.chat.id, sticker)
 	bot.send_message(msg.chat.id, "\nNotifications turned on!")
 	notify_chat_ids.append(msg.chat.id)
+	DB.add_to_notify(msg.chat.id)
 
 @bot.message_handler(commands=['notify_off'])
 def notify_off(msg):
 	global notify_chat_ids
+	global DB
 	bot.send_chat_action(msg.chat.id, 'typing')
 	bot.send_chat_action(msg.chat.id, 'typing')
 	bot.send_message(msg.chat.id, "\nNotifications turned off. You broke my birby heart...")
@@ -181,20 +193,28 @@ def notify_off(msg):
 	sticker = open('static/drama.png', 'rb')
 	bot.send_sticker(msg.chat.id, sticker)
 	notify_chat_ids.remove(msg.chat.id)
+	DB.unassign_notify(msg.chat.id)
 
 @bot.message_handler(commands=['send_birbs'])
 def send_birbs(msg):
 	global photo_chat_ids
+	#global stream_chat_ids
+	global DB
 	bot.send_chat_action(msg.chat.id, 'typing')
 	sticker = open('static/ok.png', 'rb')
 	bot.send_chat_action(msg.chat.id, 'typing')
 	bot.send_sticker(msg.chat.id, sticker)
 	bot.send_message(msg.chat.id, "\nOk, I'll send you photos!")
 	photo_chat_ids.append(msg.chat.id)
+	DB.add_to_photos(msg.chat.id)
+	# if msg.chat.id in stream_chat_ids:
+	# 	stream_chat_ids.remove(msg.chat.id)
+	# 	DB.unassign_streams(msg.chat.id)
 
 @bot.message_handler(commands=['send_none'])
 def send_no_birbs(msg):
 	global photo_chat_ids
+	global DB
 	bot.send_chat_action(msg.chat.id, 'typing')
 	sticker = open('static/disappointed.webp', 'rb')
 	bot.send_chat_action(msg.chat.id, 'typing')
@@ -202,6 +222,7 @@ def send_no_birbs(msg):
 	bot.send_message(msg.chat.id, "\nOk, I'll stop sending you photos.")
 	try:
 		photo_chat_ids.remove(msg.chat.id)
+		DB.unassign_photos(msg.chat.id)
 	except ValueError:
 		pass
 
