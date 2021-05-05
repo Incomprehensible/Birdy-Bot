@@ -25,7 +25,7 @@ class Birdy_DB:
             self.create_table(notify_table)
             self.create_table(photos_table)
             # self.create_table(stream_table)
-        
+
     def create_table(self, cmd):
         try:
             c = self.conn.cursor()
@@ -114,6 +114,14 @@ class Birdy_DB:
 
         return cur.lastrowid
 
+    def update_notify(self, ids):
+        for id in ids:
+            self.add_to_notify(id)
+    
+    def update_photos(self, ids):
+        for id in ids:
+            self.add_to_photos(id)
+
     def delete_all_notify(self):
         cmd = 'DELETE FROM notifications'
         cur = self.conn.cursor()
@@ -131,4 +139,5 @@ class Birdy_DB:
         cur = self.conn.cursor()
         cur.execute(cmd)
         self.conn.commit()
+
 

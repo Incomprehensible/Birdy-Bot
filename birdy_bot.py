@@ -24,7 +24,7 @@ photo_chat_ids = []
 
 DB.fetch_notify_data(notify_chat_ids)
 DB.fetch_photos_data(photo_chat_ids)
-#DB.fetch_streams_data(stream_chat_ids)
+# #DB.fetch_streams_data(stream_chat_ids)
 
 
 client_path = "/home/pi/birdy_bot/bot_client"
@@ -94,9 +94,18 @@ def birbs_monitor(birb_event):
 			birb_event.clear()
 		sleep(3)
 
+def send_photo():
+	global photo_chat_ids
+	if not photo_chat_ids:
+		return
+	snap_photo()
+	photo = open('photo.jpg', 'rb')
+	for id in photo_chat_ids:
+		bot.send_photo(id, photo)
+	sleep(5)
+
 def notify(birb_event, watcher):
 	global notify_chat_ids
-	global photo_chat_ids
 	watcher.start()
 	while True:
 		birb_event.wait()
@@ -113,13 +122,8 @@ def notify(birb_event, watcher):
 			bot.send_message(id, msg, parse_mode='html')
 			bot.send_sticker(id, sticker)
 		while birb_event.is_set():
-			if not photo_chat_ids:
-				continue
-			snap_photo()
-			photo = open('photo.jpg', 'rb')
-			for id in photo_chat_ids:
-				bot.send_photo(id, photo)
-			sleep(5)
+			send_photo()
+			
 		msg = '<b>Birbs are gone.</b> This is life, nothing last!'
 		sticker = open('static/cry.png', 'rb')
 		for id in notify_chat_ids:
@@ -128,6 +132,41 @@ def notify(birb_event, watcher):
 			bot.send_sticker(id, sticker)
 
 		sleep(3)
+
+# def notify(birb_event, watcher):
+# 	global notify_chat_ids
+# 	global photo_chat_ids
+# 	watcher.start()
+# 	while True:
+# 		birb_event.wait()
+# 		print('birb event is set')
+# 		msg = '<b>Birbs are present!</b> Enjoy birbs for a limited time!'
+# 		try:
+# 			sticker = open('static/enthusiastic.webp', 'rb')
+# 		except:
+# 			print('error opening sticker')
+# 			raise
+# 		for id in notify_chat_ids:
+# 			print('looking through notify chat ids')
+# 			bot.send_chat_action(id, 'typing')
+# 			bot.send_message(id, msg, parse_mode='html')
+# 			bot.send_sticker(id, sticker)
+# 		while birb_event.is_set():
+# 			if not photo_chat_ids:
+# 				continue
+# 			snap_photo()
+# 			photo = open('photo.jpg', 'rb')
+# 			for id in photo_chat_ids:
+# 				bot.send_photo(id, photo)
+# 			sleep(5)
+# 		msg = '<b>Birbs are gone.</b> This is life, nothing last!'
+# 		sticker = open('static/cry.png', 'rb')
+# 		for id in notify_chat_ids:
+# 			bot.send_chat_action(id, 'typing')
+# 			bot.send_message(id, msg, parse_mode='html')
+# 			bot.send_sticker(id, sticker)
+
+# 		sleep(3)
 
 watcher = threading.Thread(target=birbs_monitor, args=(birb_event,))
 watcher.daemon = True
@@ -173,40 +212,45 @@ def take_photo(msg):
 @bot.message_handler(commands=['notify_me'])
 def notify_on(msg):
 	global notify_chat_ids
-	global DB
+	#global DB
 	bot.send_chat_action(msg.chat.id, 'typing')
 	sticker = open('static/yessir.webp', 'rb')
 	bot.send_chat_action(msg.chat.id, 'typing')
 	bot.send_sticker(msg.chat.id, sticker)
 	bot.send_message(msg.chat.id, "\nNotifications turned on!")
-	notify_chat_ids.append(msg.chat.id)
-	DB.add_to_notify(msg.chat.id)
+	if msg.chat.id not in notify_chat_ids:
+		notify_chat_ids.append(msg.chat.id)
+	#DB.add_to_notify(msg.chat.id)
 
 @bot.message_handler(commands=['notify_off'])
 def notify_off(msg):
 	global notify_chat_ids
-	global DB
+	#global DB
 	bot.send_chat_action(msg.chat.id, 'typing')
 	bot.send_chat_action(msg.chat.id, 'typing')
 	bot.send_message(msg.chat.id, "\nNotifications turned off. You broke my birby heart...")
 	bot.send_chat_action(msg.chat.id, 'typing')
 	sticker = open('static/drama.png', 'rb')
 	bot.send_sticker(msg.chat.id, sticker)
-	notify_chat_ids.remove(msg.chat.id)
-	DB.unassign_notify(msg.chat.id)
+	try:
+		notify_chat_ids.remove(msg.chat.id)
+	except:
+		pass
+	#DB.unassign_notify(msg.chat.id)
 
 @bot.message_handler(commands=['send_birbs'])
 def send_birbs(msg):
 	global photo_chat_ids
 	#global stream_chat_ids
-	global DB
+	#global DB
 	bot.send_chat_action(msg.chat.id, 'typing')
 	sticker = open('static/ok.png', 'rb')
 	bot.send_chat_action(msg.chat.id, 'typing')
 	bot.send_sticker(msg.chat.id, sticker)
 	bot.send_message(msg.chat.id, "\nOk, I'll send you photos!")
-	photo_chat_ids.append(msg.chat.id)
-	DB.add_to_photos(msg.chat.id)
+	if msg.chat.id not in notify_chat_ids:
+		photo_chat_ids.append(msg.chat.id)
+	#DB.add_to_photos(msg.chat.id)
 	# if msg.chat.id in stream_chat_ids:
 	# 	stream_chat_ids.remove(msg.chat.id)
 	# 	DB.unassign_streams(msg.chat.id)
@@ -214,7 +258,7 @@ def send_birbs(msg):
 @bot.message_handler(commands=['send_none'])
 def send_no_birbs(msg):
 	global photo_chat_ids
-	global DB
+	#global DB
 	bot.send_chat_action(msg.chat.id, 'typing')
 	sticker = open('static/disappointed.webp', 'rb')
 	bot.send_chat_action(msg.chat.id, 'typing')
@@ -222,8 +266,8 @@ def send_no_birbs(msg):
 	bot.send_message(msg.chat.id, "\nOk, I'll stop sending you photos.")
 	try:
 		photo_chat_ids.remove(msg.chat.id)
-		DB.unassign_photos(msg.chat.id)
-	except ValueError:
+		#DB.unassign_photos(msg.chat.id)
+	except:
 		pass
 
 @bot.message_handler(commands=['stream'])
@@ -271,5 +315,6 @@ def handle(msg):
 		bot.send_sticker(msg.chat.id, sticker)
 		bot.send_message(msg.chat.id, "I'm getting bullied... I thought we were birbrends!")
 
-
 bot.polling(none_stop=True)
+DB.update_notify(notify_chat_ids)
+DB.update_photos(photo_chat_ids)
