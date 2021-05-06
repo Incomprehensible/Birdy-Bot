@@ -10,17 +10,21 @@ Feel free to explore **`@birbs_watching_bot`** in Telegram!
 ## Deploy
 If you want to deploy your own birdy bot, follow steps below or let [SETUP.sh](https://github.com/Incomprehensible/Birdy-Bot/blob/main/SETUP.sh "Auto deploy") setup the system for you.
 * Get your token from BotFather. Insert it into [config.py](<https://github.com/Incomprehensible/Birdy-Bot/blob/main/config.py>):
-    ```python
-        TOKEN='your token'
-    ```
+
+```python
+    TOKEN='your token'
+```
+
 * Upgrade your system and install dependencies:
-    ```console
-        me@home:~$ sudo apt-get update && sudo apt-get upgrade
-        me@home:~$ sudo apt-get install python3-pip
-        me@home:~$ pip3 install pyTelegramBotAPI                              # we need Telegram API
-        me@home:~$ pip3 install opencv-contrib-python                         # and OpenCV for motion detection
-        me@home:~$ sudo apt-get install libjpeg8-dev imagemagick libv4l-dev   # also packages for MJPG-Streamer
-    ```
+
+```console
+me@home:~$ sudo apt-get update && sudo apt-get upgrade
+me@home:~$ sudo apt-get install python3-pip
+me@home:~$ pip3 install pyTelegramBotAPI                              # we need Telegram API
+me@home:~$ pip3 install opencv-contrib-python                         # and OpenCV for motion detection
+me@home:~$ sudo apt-get install libjpeg8-dev imagemagick libv4l-dev   # also packages for MJPG-Streamer
+```
+
 * Build MJPG-Streamer:
     ```console
         me@home:~$ wget 'https://sourceforge.net/code-snapshots/svn/m/mj/mjpg-streamer/code/mjpg-streamer-code-r182.zip'
