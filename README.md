@@ -17,34 +17,36 @@ If you want to deploy your own birdy bot, follow steps below or let [SETUP.sh](h
 
 * Upgrade your system and install dependencies:
 
-```console
-me@home:~$ sudo apt-get update && sudo apt-get upgrade
-me@home:~$ sudo apt-get install python3-pip
-me@home:~$ pip3 install pyTelegramBotAPI                              # we need Telegram API
-me@home:~$ pip3 install opencv-contrib-python                         # and OpenCV for motion detection
-me@home:~$ sudo apt-get install libjpeg8-dev imagemagick libv4l-dev   # also packages for MJPG-Streamer
+```zsh
+    pi@home:~$ sudo apt-get update && sudo apt-get upgrade
+    pi@home:~$ sudo apt-get install python3-pip
+    pi@home:~$ pip3 install pyTelegramBotAPI                              # we need Telegram API
+    pi@home:~$ pip3 install opencv-contrib-python                         # and OpenCV for motion detection
+    pi@home:~$ sudo apt-get install libjpeg8-dev imagemagick libv4l-dev   # also packages for MJPG-Streamer
 ```
 
 * Build MJPG-Streamer:
-    ```console
-        me@home:~$ wget 'https://sourceforge.net/code-snapshots/svn/m/mj/mjpg-streamer/code/mjpg-streamer-code-r182.zip'
-        me@home:~$ unzip mjpg-streamer-code-182.zip
-        me@home:~$ cd mjpg-streamer-code-182/mjpg-streamer
-        me@home:~$ make mjpg_streamer input_file.so output_http.so            # see troubleshooting if this fails
-    ```
+
+```console
+    pi@home:~$ wget 'https://sourceforge.net/code-snapshots/svn/m/mj/mjpg-streamer/code/mjpg-streamer-code-r182.zip'
+    pi@home:~$ unzip mjpg-streamer-code-182.zip
+    pi@home:~$ cd mjpg-streamer-code-182/mjpg-streamer
+    pi@home:~$ make mjpg_streamer input_file.so output_http.so            # see troubleshooting if this fails
+```
+
 * Prepare system files:
     ```console
-        me@home:~$ sudo ln -s /usr/include/linux/videodev2.h /usr/include/linux/videodev.h
-        me@home:~$ sudo cp mjpg_streamer /usr/local/bin
-        me@home:~$ sudo cp output_http.so input_file.so /usr/local/lib/
-        me@home:~$ sudo cp -R www /usr/local/www && cd -
-        me@home:~$ mkdir /tmp/stream
-        me@home:~$ rm -rf mjpg-streamer-182
+        pi@home:~$ sudo ln -s /usr/include/linux/videodev2.h /usr/include/linux/videodev.h
+        pi@home:~$ sudo cp mjpg_streamer /usr/local/bin
+        pi@home:~$ sudo cp output_http.so input_file.so /usr/local/lib/
+        pi@home:~$ sudo cp -R www /usr/local/www && cd -
+        pi@home:~$ mkdir /tmp/stream
+        pi@home:~$ rm -rf mjpg-streamer-182
     ```
 * Build streaming code and prepare database path:
     ```console
-        me@home:~$ cd Birdy-Bot; make all
-        me@home:~$ mkdir db
+        pi@home:~$ cd Birdy-Bot; make all
+        pi@home:~$ mkdir db
     ```
 * Finally, launch everything:
     ```console
