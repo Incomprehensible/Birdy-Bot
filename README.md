@@ -11,7 +11,7 @@ Feel free to explore **`@birbs_watching_bot`** in Telegram!
 If you want to deploy your own birdy bot, follow steps below or let [SETUP.sh](https://github.com/Incomprehensible/Birdy-Bot/blob/main/SETUP.sh "Auto deploy") setup the system for you.
 * Get your token from BotFather. Insert it into [config.py](<>):
 * ```python
-
+    TOKEN='your token'
 ```
 * Upgrade your system and install dependencies:
 * ```zsh

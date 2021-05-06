@@ -25,10 +25,9 @@ if [ -z "$token" ]; then
 fi
 
 git clone "$DIR/https://github.com/Incomprehensible/Birdy-Bot.git"
-# here insert token into config.py
 
-sed -i -e "s/\${TOKEN}/${token}/" "$DIR/Birdy-Bot/config.py"
-
+# insert token into config.py
+sed -i.bak "s/^\(TOKEN=\).*/\1'${token}'/" config.py
 
 sudo apt-get update
 sudo apt-get upgrade
