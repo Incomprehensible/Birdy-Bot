@@ -5,6 +5,7 @@ int camera_capture(void)
     int fd;
     int width = 0;
     int height = 0;
+    char to_write = 0;
     cout << "Trying to access a webcam..." << endl;
     fd = open("/dev/video0", O_RDWR);
     if (fd < 0)
@@ -52,52 +53,53 @@ int camera_capture(void)
     buffinfo.memory = V4L2_MEMORY_MMAP;
     buffinfo.index = 0;
     int type = buffinfo.type;
-    if (ioctl(fd, VIDIOC_STREAMON, &type) < 0)
-    {
-        perror("Streaming failed, VIDIOC_STREAMON");
-        exit(1);
+    while (true) {
+
+        if (ioctl(fd, VIDIOC_STREAMON, &type) < 0)
+        {
+            perror("Streaming failed, VIDIOC_STREAMON");
+            exit(1);
+        }
+        if (ioctl(fd, VIDIOC_QBUF, &buffinfo) < 0)
+        {
+            perror("Could not queue buffer, VIDIOC_QBUF");
+            exit(1);
+        }
+        if (ioctl(fd, VIDIOC_DQBUF, &buffinfo) < 0)
+        {
+            perror("Could not dequeue buffer, VIDIOC_DQBUF");
+            exit(1);
+        }
+        cout << "Buffer has " << (double)buffinfo.bytesused / 1024 << " Kbytes written to it" << endl;
+        ofstream outF;
+        outF.open(PICNAME, ios::binary | ios::trunc);
+        outF.write(buffer, buffinfo.bytesused);
+        outF.close();
+    
+        if (to_write)
+            --to_write;
+        else {
+            ofstream outCV("/tmp/stream/cvpic.tmp", ios::binary | ios::trunc);
+            outCV.write(buffer, buffinfo.bytesused);
+            outCV.close();
+            rename("/tmp/stream/cvpic.tmp", CVPIC);
+            to_write = 5;
+        }
+
+        memset(buffer, 0, queryBuff.length);
     }
-    if (ioctl(fd, VIDIOC_QBUF, &buffinfo) < 0)
-    {
-        perror("Could not queue buffer, VIDIOC_QBUF");
-        exit(1);
-    }
-    if (ioctl(fd, VIDIOC_DQBUF, &buffinfo) < 0)
-    {
-        perror("Could not dequeue buffer, VIDIOC_DQBUF");
-        exit(1);
-    }
-    cout << "Buffer has " << (double)buffinfo.bytesused / 1024 << " Kbytes written to it" << endl;
-    ofstream outF;
-    outF.open(PICNAME, ios::binary | ios::trunc);
-    int bufPos = 0, blockSize = 0;
-    int remainSize = buffinfo.bytesused;
-    char *newMem = NULL;
-    int iter = 0;
-    while (remainSize > 0)
-    {
-        bufPos += blockSize;
-        blockSize = 1024;
-        newMem = new char[sizeof(char) * blockSize];
-        memcpy(newMem, buffer + bufPos, blockSize);
-        outF.write(newMem, blockSize);
-        remainSize -= blockSize;
-        if (blockSize > remainSize)
-            blockSize = remainSize;
-        delete newMem;
-    }
-    outF.close();
     if (ioctl(fd, VIDIOC_STREAMOFF, &type) < 0)
     {
         perror("Could not end streaming, VIDIOC_STREAMOFF");
         exit(1);
     }
+    munmap(buffer, queryBuff.length);
     close(fd);
     return (0);
 }
 
 int main()
 {
-    camera_capture();
+	camera_capture();
     return 0;
 }

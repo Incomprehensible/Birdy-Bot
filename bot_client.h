@@ -19,5 +19,8 @@
 
 using namespace std;
 
-#define PICNAME "photo.jpg"
+//#define PICNAME "photo.jpg"
+#define PICNAME "/tmp/stream/pic.jpg"
+#define CVPIC "/tmp/stream/cvpic.jpg"
+
 #define BUFSIZE 1024

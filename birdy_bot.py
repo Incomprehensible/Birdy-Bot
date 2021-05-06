@@ -11,6 +11,8 @@ token = token_urlsafe(8)
 
 bot = telebot.TeleBot(config.TOKEN)
 
+stream_link = 'http://192.168.43.104:8080/stream_simple.html'
+
 subcall = subprocess.call
 
 THRESHOLD = 1000
@@ -33,18 +35,18 @@ birb_event = threading.Event()
 cam_event = threading.Event()
 
 # MOTION
-vidCap = cv2.VideoCapture
+#vidCap = cv2.VideoCapture
 cvColor = cv2.cvtColor
 cvResize = cv2.resize
 
 def birb_online():
 	global firstFrame
-	cap = vidCap(-1)
+	#cap = vidCap(-1)
 	gray = None
 	#firstFrame = None
 	while True:
-		ret, frame = cap.read()
-
+		frame = cv2.imread("/tmp/stream/cvpic.jpg")
+		#ret, frame = cap.read()
 		if frame is None:
 			print("[ERROR]: No camera connection")
 			break
@@ -64,7 +66,7 @@ def birb_online():
 				continue
 			else:
 				print('motion detected')
-				cap.release()
+				#cap.release()
 				firstFrame = gray
 				return True
 
@@ -72,7 +74,7 @@ def birb_online():
 
 	#release camera
 	print('no motion')
-	cap.release()
+	#cap.release()
 	firstFrame = gray
 	return False
 
@@ -98,8 +100,8 @@ def send_photo():
 	global photo_chat_ids
 	if not photo_chat_ids:
 		return
-	snap_photo()
-	photo = open('photo.jpg', 'rb')
+	#snap_photo()
+	photo = open('/tmp/stream/pic.jpg', 'rb')
 	for id in photo_chat_ids:
 		bot.send_photo(id, photo)
 	sleep(5)
@@ -205,8 +207,8 @@ def help(msg):
 
 @bot.message_handler(commands=['photo'])
 def take_photo(msg):
-	snap_photo()
-	photo = open('photo.jpg', 'rb')
+	#snap_photo()
+	photo = open('/tmp/stream/pic.jpg', 'rb')
 	bot.send_photo(msg.chat.id, photo)
 
 @bot.message_handler(commands=['notify_me'])
@@ -248,7 +250,7 @@ def send_birbs(msg):
 	bot.send_chat_action(msg.chat.id, 'typing')
 	bot.send_sticker(msg.chat.id, sticker)
 	bot.send_message(msg.chat.id, "\nOk, I'll send you photos!")
-	if msg.chat.id not in notify_chat_ids:
+	if msg.chat.id not in photo_chat_ids:
 		photo_chat_ids.append(msg.chat.id)
 	#DB.add_to_photos(msg.chat.id)
 	# if msg.chat.id in stream_chat_ids:
@@ -272,7 +274,7 @@ def send_no_birbs(msg):
 
 @bot.message_handler(commands=['stream'])
 def stream(msg):
-	bot.send_message(msg.chat.id, "Unimplemented.")
+	bot.send_message(msg.chat.id, stream_link)
 
 @bot.message_handler(commands=['status'])
 def get_status(msg):
