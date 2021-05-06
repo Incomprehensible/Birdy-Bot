@@ -17,7 +17,7 @@ TOKEN='your token'
 
 * Upgrade your system and install dependencies:
 
-```zsh
+```console
 pi@home:~$ sudo apt-get update && sudo apt-get upgrade
 pi@home:~$ sudo apt-get install python3-pip
 pi@home:~$ pip3 install pyTelegramBotAPI                              # we need Telegram API
@@ -53,15 +53,27 @@ pi@home:~$ mkdir db
 
 * Finally, launch everything:
 
-```zsh
+```console
 pi@home:~$ $DIR/Birdy-Bot/birdy_client &
 pi@home:~$ LD_LIBRARY_PATH=/usr/local/lib mjpg_streamer -i "input_file.so -f /tmp/stream -n pic.jpg" -o "output_http.so -w /usr/local/www" &
 pi@home:~$ python3 $DIR/Birdy-Bot/birdy_bot.py
 ```
 
 ## Troubleshooting notes
+### Build issues
+In my case, I had to comment the line in MJPG-Streamer source file `utils.c`:
+```c
+#include <limits.h>
+#include <linux/stat.h>
+//#include <sys/stat.h>
+
+#include "utils.h"
+```
+As it's declarations of some structs conflicted with `linux/stat.h`.
+
+### Running issues
 Make sure your camera is enabled with raspi-config. Or you can enable it with the command:
 
-```console
+```zsh
 pi@home:~$ sed -i "s/start_x=0/start_x=1/g" /boot/config.txt
 ```
