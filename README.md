@@ -69,7 +69,7 @@ In my case, I had to comment the line in MJPG-Streamer source file `utils.c`:
 
 #include "utils.h"
 ```
-As it's declarations of some structs conflicted with `linux/stat.h`.
+As its declarations of some structs conflicted with `linux/stat.h`.
 
 ### Running issues
 Make sure your camera is enabled with raspi-config. Or you can enable it with the command:
